@@ -17,12 +17,16 @@ def chat_with_ai(
     try:
         db.refresh(current_user)
 
+        # 1. Generate AI response
         ai_text = get_ai_response(current_user, payload.message, db)
         
-        # 1. Parse AI text for tasks: [TASK: Description]
+        # 2. STAGE LOGIC: Transition from ONBOARDING to ONBOARDING_COMPLETE
+        if current_user.current_stage == models.UserStage.ONBOARDING:
+            current_user.current_stage = models.UserStage.ONBOARDING_COMPLETE
+
+        # 3. Parse AI text for tasks: [TASK: Description]
         tasks_found = re.findall(r"\[TASK: (.*?)\]", ai_text)
         for task_title in tasks_found:
-            # Avoid duplicate tasks with the same name for the same user
             exists = db.query(models.Task).filter(
                 models.Task.user_id == current_user.id, 
                 models.Task.title == task_title
@@ -31,21 +35,24 @@ def chat_with_ai(
                 new_task = models.Task(user_id=current_user.id, title=task_title)
                 db.add(new_task)
 
-        # 2. Clean tags out of the response so the user doesn't see the code
+        # 4. Clean tags out of response
         clean_response = re.sub(r"\[TASK: .*?\]", "", ai_text).strip()
 
-        # 3. Save History
+        # 5. Save Chat History
         user_msg = models.ChatMessage(user_id=current_user.id, role="user", content=payload.message)
         ai_msg = models.ChatMessage(user_id=current_user.id, role="assistant", content=clean_response)
         
         db.add(user_msg)
         db.add(ai_msg)
+        
+        # Save all changes to the database
         db.commit()
+        db.refresh(current_user)
 
         return {
             "response": clean_response,
             "stage_updated": True,
-            "next_stage": current_user.current_stage
+            "next_stage": current_user.current_stage.value
         }
 
     except Exception as e:

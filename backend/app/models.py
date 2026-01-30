@@ -1,5 +1,7 @@
 # app/models.py
 from sqlalchemy import Column, Integer, String, Float, Boolean, ForeignKey, Enum, Text, DateTime, Table
+# app/models.py
+from sqlalchemy import Column, Integer, String, Float, Boolean, ForeignKey, Enum, Text, DateTime, Table
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from .database import Base
@@ -7,7 +9,7 @@ import enum
 
 class UserStage(str, enum.Enum):
     UNAUTHENTICATED = "UNAUTHENTICATED"
-    ONBOARDING_INCOMPLETE = "ONBOARDING_INCOMPLETE"
+    ONBOARDING = "ONBOARDING"  # Simplified from ONBOARDING_INCOMPLETE
     ONBOARDING_COMPLETE = "ONBOARDING_COMPLETE"
     DISCOVERY = "DISCOVERY"
     SHORTLISTED = "SHORTLISTED"
@@ -27,11 +29,11 @@ class User(Base):
     email = Column(String, unique=True, index=True)
     hashed_password = Column(String)
     full_name = Column(String)
-    current_stage = Column(Enum(UserStage), default=UserStage.ONBOARDING_INCOMPLETE)
+    # Default is now set to ONBOARDING
+    current_stage = Column(Enum(UserStage), default=UserStage.ONBOARDING)
     
     profile = relationship("Profile", back_populates="owner", uselist=False)
     messages = relationship("ChatMessage", back_populates="owner")
-    # NEW: Relationship to tasks
     tasks = relationship("Task", back_populates="owner") 
     shortlisted_universities = relationship(
         "University", 
