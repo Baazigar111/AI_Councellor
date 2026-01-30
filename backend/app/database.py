@@ -22,7 +22,12 @@ if SQLALCHEMY_DATABASE_URL.startswith("postgres://"):
 
 # 4. Create Engine
 # Note: connect_args is only needed for SQLite, not needed for Postgres
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URL,
+    # Add these two lines to handle connection drops gracefully
+    pool_pre_ping=True,
+    pool_recycle=300
+)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
