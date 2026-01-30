@@ -5,11 +5,7 @@ import { apiRequest } from '@/lib/api';
 import Link from 'next/link';
 
 export default function SignupPage() {
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    full_name: '',
-  });
+  const [formData, setFormData] = useState({ email: '', password: '', full_name: '' });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
@@ -20,13 +16,10 @@ export default function SignupPage() {
     setError('');
 
     try {
-      // 1. Call your registration endpoint
       await apiRequest('/auth/register', {
         method: 'POST',
         body: JSON.stringify(formData),
       });
-
-      // 2. Redirect to login so the user can get their first token
       router.push('/login');
     } catch (err: any) {
       setError(err.message || "Registration failed. Try a different email.");
@@ -36,58 +29,47 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
-      <form 
-        onSubmit={handleSignup} 
-        className="bg-slate-900 p-8 rounded-2xl border border-slate-800 w-full max-w-md space-y-6 shadow-2xl"
-      >
+    <div className="flex min-h-screen bg-brand-bg items-center justify-center p-8">
+      <div className="w-full max-w-md space-y-8 animate-fade-in bg-white p-10 rounded-3xl border border-slate-100 shadow-2xl shadow-slate-200">
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-blue-400">Join the Journey</h1>
-          <p className="text-slate-500 mt-2">Create your account to start your study abroad path.</p>
+          <div className="inline-block p-3 bg-blue-50 rounded-2xl mb-4">🎓</div>
+          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Join the Journey</h1>
+          <p className="text-slate-500 mt-2 font-medium">Create your mentor profile today.</p>
         </div>
 
-        {error && (
-          <div className="bg-red-500/10 border border-red-500/50 p-3 rounded-xl text-red-400 text-sm">
-            {error}
+        <form onSubmit={handleSignup} className="space-y-6">
+          {error && <div className="p-4 bg-red-50 border border-red-100 text-red-600 text-xs font-bold rounded-2xl">{error}</div>}
+
+          <div className="space-y-4">
+            <input 
+              type="text" placeholder="Full Name" required
+              className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-blue-600 outline-none transition-all text-slate-800"
+              onChange={e => setFormData({...formData, full_name: e.target.value})} 
+            />
+            <input 
+              type="email" placeholder="Email Address" required
+              className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-blue-600 outline-none transition-all text-slate-800"
+              onChange={e => setFormData({...formData, email: e.target.value})} 
+            />
+            <input 
+              type="password" placeholder="Password" required
+              className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-blue-600 outline-none transition-all text-slate-800"
+              onChange={e => setFormData({...formData, password: e.target.value})} 
+            />
           </div>
-        )}
 
-        <div className="space-y-4">
-          <input 
-            type="text"
-            placeholder="Full Name" 
-            className="w-full bg-slate-800 p-4 rounded-xl text-white outline-none focus:ring-2 focus:ring-blue-500"
-            onChange={e => setFormData({...formData, full_name: e.target.value})} 
-            required
-          />
-          <input 
-            type="email"
-            placeholder="Email Address" 
-            className="w-full bg-slate-800 p-4 rounded-xl text-white outline-none focus:ring-2 focus:ring-blue-500"
-            onChange={e => setFormData({...formData, email: e.target.value})} 
-            required
-          />
-          <input 
-            type="password"
-            placeholder="Password" 
-            className="w-full bg-slate-800 p-4 rounded-xl text-white outline-none focus:ring-2 focus:ring-blue-500"
-            onChange={e => setFormData({...formData, password: e.target.value})} 
-            required
-          />
-        </div>
+          <button 
+            type="submit" disabled={isLoading}
+            className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold tracking-wide transition-all shadow-xl active:scale-[0.98] shadow-blue-900/10"
+          >
+            {isLoading ? "Creating Account..." : "Create Account"}
+          </button>
+        </form>
 
-        <button 
-          type="submit" 
-          disabled={isLoading}
-          className="w-full bg-blue-600 hover:bg-blue-700 py-4 rounded-xl font-bold text-white transition-all disabled:opacity-50"
-        >
-          {isLoading ? "Creating Account..." : "Create Account"}
-        </button>
-
-        <p className="text-center text-slate-500 text-sm">
-          Already have an account? <Link href="/login" className="text-blue-400 hover:underline">Login here</Link>
+        <p className="text-center text-sm text-slate-500 font-medium pt-4">
+          Already have an account? <Link href="/login" className="text-blue-600 font-bold hover:underline">Login here</Link>
         </p>
-      </form>
+      </div>
     </div>
   );
 }

@@ -15,16 +15,15 @@ export default function Home() {
       }
 
       try {
-        // Fetch real user data from our new /user/me endpoint
         const user = await apiRequest('/user/me');
         
-        if (user.current_stage === "ONBOARDING_INCOMPLETE") {
+        // Logical check for onboarding status preserved
+        if (user.current_stage === "ONBOARDING_INCOMPLETE" || user.current_stage === "ONBOARDING") {
           router.push('/onboarding');
         } else {
           router.push('/dashboard');
         }
       } catch (err) {
-        // If token is invalid/expired, clear it and go to login
         localStorage.removeItem('token');
         router.push('/login');
       }
@@ -34,10 +33,12 @@ export default function Home() {
   }, [router]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-950">
-      <div className="flex flex-col items-center gap-4">
-        <div className="h-12 w-12 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
-        <p className="text-slate-400 font-medium animate-pulse">Checking your journey status...</p>
+    <div className="flex min-h-screen items-center justify-center bg-brand-bg">
+      <div className="flex flex-col items-center gap-6 animate-pulse">
+        <div className="h-12 w-12 rounded-xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-200">
+           <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+        </div>
+        <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">Checking Journey Status</p>
       </div>
     </div>
   );

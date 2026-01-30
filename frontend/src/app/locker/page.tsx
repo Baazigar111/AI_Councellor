@@ -9,6 +9,7 @@ export default function DocumentLocker() {
   const [isSopReady, setIsSopReady] = useState(false);
   const router = useRouter();
 
+  // --- LOGIC PRESERVED ---
   useEffect(() => {
     const loadProfile = async () => {
       try {
@@ -30,8 +31,6 @@ export default function DocumentLocker() {
         body: JSON.stringify({ sop_content: sop, is_sop_ready: true })
       });
       setIsSopReady(true);
-      
-      // OPTIONAL: Automatically clear a task if one existed for drafting the SOP
       alert("SOP Saved successfully!");
     } catch (err) {
       console.error("Save failed");
@@ -46,9 +45,7 @@ export default function DocumentLocker() {
       const response = await fetch('http://localhost:8000/user/download-sop', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      
       if (!response.ok) throw new Error("Please save your SOP first.");
-
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -63,57 +60,71 @@ export default function DocumentLocker() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-200 p-8">
-      <div className="max-w-4xl mx-auto space-y-8">
-        <div className="flex justify-between items-end">
+    <div className="min-h-screen bg-brand-bg text-slate-900 p-10 animate-fade-in">
+      <div className="max-w-4xl mx-auto space-y-10">
+        
+        {/* Header Section */}
+        <header className="flex justify-between items-end">
           <div>
-            <h1 className="text-4xl font-bold text-blue-400">SOP Locker</h1>
-            <p className="text-slate-500 mt-2">Refine and finalize your Statement of Purpose.</p>
+            <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight">SOP Locker</h1>
+            <p className="text-slate-500 mt-2 font-medium">Refine your narrative for your target universities.</p>
           </div>
           <button 
             onClick={() => router.push('/dashboard')} 
-            className="text-slate-400 hover:text-white transition-colors flex items-center gap-2"
+            className="group flex items-center gap-2 text-slate-500 hover:text-blue-600 font-bold text-sm transition-all"
           >
-            ← Back to Chat
+            <span className="group-hover:-translate-x-1 transition-transform">←</span> Back to Dashboard
           </button>
-        </div>
+        </header>
 
-        <div className="inline-flex items-center gap-3 bg-slate-900 px-6 py-3 rounded-2xl border border-slate-800">
-          <span className="text-sm font-bold text-slate-400 uppercase tracking-widest">Status</span>
+        {/* Dynamic Status Bar */}
+        <div className="flex items-center gap-4 bg-white px-6 py-4 rounded-2xl border border-slate-200 shadow-sm w-fit">
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Document Status</span>
           <div className="flex items-center gap-2">
-            <div className={`w-3 h-3 rounded-full ${isSopReady ? 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]' : 'bg-slate-700'}`}></div>
-            <span className="text-xs font-bold">{isSopReady ? 'READY' : 'DRAFT'}</span>
+            <div className={`w-2 h-2 rounded-full ${isSopReady ? 'bg-green-500 animate-pulse' : 'bg-slate-300'}`}></div>
+            <span className={`text-xs font-bold tracking-tight ${isSopReady ? 'text-green-600' : 'text-slate-400'}`}>
+              {isSopReady ? 'FINALIZED' : 'DRAFT MODE'}
+            </span>
           </div>
         </div>
 
-        <div className="bg-slate-900 rounded-3xl border border-slate-800 p-6 space-y-4 shadow-2xl">
-          <div className="flex justify-between items-center px-2">
-            <h2 className="text-xl font-bold">Your Statement of Purpose</h2>
+        {/* Professional Editor Container */}
+        <div className="bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden animate-slide-up">
+          <div className="flex justify-between items-center p-6 border-b border-slate-100 bg-slate-50/50">
+            <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Statement of Purpose</h2>
             <button 
               disabled={!isSopReady}
               onClick={downloadPdf}
-              className="text-sm text-blue-400 hover:text-blue-300 transition-colors disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-2"
+              className="flex items-center gap-2 text-xs font-bold text-blue-600 hover:text-blue-700 disabled:opacity-30 disabled:grayscale transition-all"
             >
               <span>Download PDF</span>
-              <span>📄</span>
+              <span className="text-base">📄</span>
             </button>
           </div>
 
-          <textarea 
-            className="w-full h-125 bg-slate-950 border border-slate-800 rounded-2xl p-8 outline-none focus:ring-2 focus:ring-blue-600 transition-all text-slate-300 leading-relaxed font-serif text-lg resize-none"
-            placeholder="Introduce yourself, your academic background, and your goals..."
-            value={sop}
-            onChange={(e) => setSop(e.target.value)}
-          />
+          <div className="p-8">
+            <textarea 
+              className="w-full h-125 bg-white border-none focus:ring-0 text-slate-800 leading-[1.8] font-serif text-lg resize-none placeholder:text-slate-200"
+              placeholder="Start drafting your journey here..."
+              value={sop}
+              onChange={(e) => setSop(e.target.value)}
+            />
+          </div>
 
-          <button 
-            onClick={saveSop}
-            disabled={isSaving}
-            className="w-full py-4 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-800 rounded-xl font-bold transition-all shadow-lg active:scale-[0.98] text-white"
-          >
-            {isSaving ? "Saving to Cloud..." : "Save SOP Draft"}
-          </button>
+          <div className="p-6 bg-slate-50 border-t border-slate-100">
+            <button 
+              onClick={saveSop}
+              disabled={isSaving}
+              className="w-full py-4 bg-slate-900 hover:bg-black disabled:bg-slate-200 text-white rounded-2xl font-bold text-sm tracking-wide transition-all shadow-lg active:scale-[0.98]"
+            >
+              {isSaving ? "Syncing to Cloud..." : "Save and Lock SOP"}
+            </button>
+          </div>
         </div>
+        
+        <p className="text-center text-[10px] text-slate-400 font-medium">
+          Saved drafts are encrypted and stored in your secure Document Locker.
+        </p>
       </div>
     </div>
   );
