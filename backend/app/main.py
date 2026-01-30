@@ -20,11 +20,11 @@ app = FastAPI(
 
 # --- MIDDLEWARE ---
 # Gets the FRONTEND_URL from environment variables (set this on Render later)
-frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+frontend_url = os.getenv("FRONTEND_URL", "https://ai-councellor-ten.vercel.app")
 
 origins = [
     "http://localhost:3000",
-    frontend_url, 
+    "https://ai-councellor-ten.vercel.app", 
 ]
 
 app.add_middleware(
