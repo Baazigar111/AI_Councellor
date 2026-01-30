@@ -20,13 +20,13 @@ def chat_with_ai(
         # 1. Generate AI response
         ai_text = get_ai_response(current_user, payload.message, db)
         
-        # 2. STAGE LOGIC: Transition from ONBOARDING to ONBOARDING_COMPLETE
-        if current_user.current_stage == models.UserStage.ONBOARDING:
-            current_user.current_stage = models.UserStage.ONBOARDING_COMPLETE
+        # 2. STAGE LOGIC: Removed transition logic. 
+        # The user will simply stay in their current stage (ONBOARDING).
 
         # 3. Parse AI text for tasks: [TASK: Description]
         tasks_found = re.findall(r"\[TASK: (.*?)\]", ai_text)
         for task_title in tasks_found:
+            # Avoid duplicate tasks with the same name for the same user
             exists = db.query(models.Task).filter(
                 models.Task.user_id == current_user.id, 
                 models.Task.title == task_title
@@ -35,7 +35,7 @@ def chat_with_ai(
                 new_task = models.Task(user_id=current_user.id, title=task_title)
                 db.add(new_task)
 
-        # 4. Clean tags out of response
+        # 4. Clean tags out of response so the user doesn't see the code
         clean_response = re.sub(r"\[TASK: .*?\]", "", ai_text).strip()
 
         # 5. Save Chat History
@@ -45,13 +45,13 @@ def chat_with_ai(
         db.add(user_msg)
         db.add(ai_msg)
         
-        # Save all changes to the database
+        # Save all changes (messages and tasks) to the database
         db.commit()
         db.refresh(current_user)
 
         return {
             "response": clean_response,
-            "stage_updated": True,
+            "stage_updated": False, # Set to False since the stage doesn't change
             "next_stage": current_user.current_stage.value
         }
 
