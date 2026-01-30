@@ -24,7 +24,8 @@ frontend_url = os.getenv("FRONTEND_URL", "https://ai-councellor-ten.vercel.app")
 
 origins = [
     "http://localhost:3000",
-    "https://ai-councellor-ten.vercel.app", 
+    "https://ai-councellor-ten.vercel.app",
+    "https://ai-councellor-ten.vercel.app/", # Added with slash just in case
 ]
 
 app.add_middleware(
