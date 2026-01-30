@@ -8,7 +8,7 @@ router = APIRouter()
 @router.post("/register", response_model=schemas.UserResponse)
 def register_user(user: schemas.UserCreate, db: Session = Depends(database.get_db)):
     """
-    Registers a new user and sets their initial stage to ONBOARDING_INCOMPLETE.
+    Registers a new user and sets their initial stage to ONBOARDING.
     """
     # Check if user exists
     db_user = db.query(models.User).filter(models.User.email == user.email).first()
@@ -21,12 +21,18 @@ def register_user(user: schemas.UserCreate, db: Session = Depends(database.get_d
         email=user.email, 
         full_name=user.full_name, 
         hashed_password=hashed_pwd,
-        current_stage=models.UserStage.ONBOARDING_INCOMPLETE
+        # UPDATED: Changed from ONBOARDING_INCOMPLETE to ONBOARDING
+        current_stage=models.UserStage.ONBOARDING
     )
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-    return new_user
+    
+    try:
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
+        return new_user
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Database error during registration: {str(e)}")
 
 @router.post("/login", response_model=schemas.Token)
 def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(database.get_db)):
