@@ -1,5 +1,12 @@
 from app.database import SessionLocal, engine
 from app import models
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
+# PASTE YOUR NEON URL HERE DIRECTLY
+NEON_URL = "postgresql://neondb_owner:npg_msJipDQ38wAX@ep-odd-waterfall-aeciwxaa-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require"
+engine = create_engine(NEON_URL)
+SessionLocal = sessionmaker(bind=engine)
 
 def seed_universities():
     db = SessionLocal()
