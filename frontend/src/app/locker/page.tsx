@@ -9,7 +9,6 @@ export default function DocumentLocker() {
   const [isSopReady, setIsSopReady] = useState(false);
   const router = useRouter();
 
-  // --- LOGIC PRESERVED ---
   useEffect(() => {
     const loadProfile = async () => {
       try {
@@ -42,28 +41,46 @@ export default function DocumentLocker() {
   const downloadPdf = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:8000/user/download-sop', {
-        headers: { 'Authorization': `Bearer ${token}` }
+      // Detect if we are in local development or production
+      const baseUrl = window.location.hostname === 'localhost' 
+        ? 'http://localhost:8000' 
+        : 'https://ai-counsellor-backend.onrender.com'; // Replace with your actual Render URL
+
+      const response = await fetch(`${baseUrl}/user/download-sop`, {
+        method: 'GET',
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/pdf'
+        }
       });
-      if (!response.ok) throw new Error("Please save your SOP first.");
+      
+      if (!response.ok) {
+        throw new Error("Could not generate PDF. Please save your SOP content first.");
+      }
+
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = "My_Statement_of_Purpose.pdf";
+      a.download = `SOP_${new Date().toLocaleDateString()}.pdf`;
       document.body.appendChild(a);
       a.click();
+      
+      // Cleanup
+      window.URL.revokeObjectURL(url);
       a.remove();
     } catch (err: any) {
-      alert(err.message);
+      if (err.message === "Failed to fetch") {
+        alert("Backend Connection Error: Is your FastAPI server running at port 8000?");
+      } else {
+        alert(err.message);
+      }
     }
   };
 
   return (
     <div className="min-h-screen bg-brand-bg text-slate-900 p-10 animate-fade-in">
       <div className="max-w-4xl mx-auto space-y-10">
-        
-        {/* Header Section */}
         <header className="flex justify-between items-end">
           <div>
             <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight">SOP Locker</h1>
@@ -77,7 +94,6 @@ export default function DocumentLocker() {
           </button>
         </header>
 
-        {/* Dynamic Status Bar */}
         <div className="flex items-center gap-4 bg-white px-6 py-4 rounded-2xl border border-slate-200 shadow-sm w-fit">
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Document Status</span>
           <div className="flex items-center gap-2">
@@ -88,14 +104,13 @@ export default function DocumentLocker() {
           </div>
         </div>
 
-        {/* Professional Editor Container */}
         <div className="bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden animate-slide-up">
           <div className="flex justify-between items-center p-6 border-b border-slate-100 bg-slate-50/50">
             <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Statement of Purpose</h2>
             <button 
-              disabled={!isSopReady}
+              disabled={!isSopReady || isSaving}
               onClick={downloadPdf}
-              className="flex items-center gap-2 text-xs font-bold text-blue-600 hover:text-blue-700 disabled:opacity-30 disabled:grayscale transition-all"
+              className="flex items-center gap-2 text-xs font-bold text-blue-600 hover:text-blue-700 disabled:opacity-30 disabled:grayscale transition-all cursor-pointer"
             >
               <span>Download PDF</span>
               <span className="text-base">📄</span>
@@ -115,7 +130,7 @@ export default function DocumentLocker() {
             <button 
               onClick={saveSop}
               disabled={isSaving}
-              className="w-full py-4 bg-slate-900 hover:bg-black disabled:bg-slate-200 text-white rounded-2xl font-bold text-sm tracking-wide transition-all shadow-lg active:scale-[0.98]"
+              className="w-full py-4 bg-slate-900 hover:bg-black disabled:bg-slate-200 text-white rounded-2xl font-bold text-sm tracking-wide transition-all shadow-lg active:scale-[0.98] cursor-pointer"
             >
               {isSaving ? "Syncing to Cloud..." : "Save and Lock SOP"}
             </button>
