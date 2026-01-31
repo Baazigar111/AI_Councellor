@@ -39,44 +39,45 @@ export default function DocumentLocker() {
   };
 
   const downloadPdf = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      // Detect if we are in local development or production
-      const baseUrl = window.location.hostname === 'localhost' 
-        ? 'http://localhost:8000' 
-        : 'https://ai-counsellor-backend.onrender.com'; // Replace with your actual Render URL
+  try {
+    const token = localStorage.getItem('token');
+    
+    // Auto-detect if we are running locally or on the live site
+    const baseUrl = window.location.hostname === 'localhost' 
+      ? 'http://127.0.0.1:8000' 
+      : 'https://ai-councellor.onrender.com'; // Your live Render URL
 
-      const response = await fetch(`${baseUrl}/user/download-sop`, {
-        method: 'GET',
-        headers: { 
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/pdf'
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error("Could not generate PDF. Please save your SOP content first.");
+    const response = await fetch(`${baseUrl}/user/download-sop`, {
+      method: 'GET',
+      headers: { 
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/pdf'
       }
+    });
 
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `SOP_${new Date().toLocaleDateString()}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      
-      // Cleanup
-      window.URL.revokeObjectURL(url);
-      a.remove();
-    } catch (err: any) {
-      if (err.message === "Failed to fetch") {
-        alert("Backend Connection Error: Is your FastAPI server running at port 8000?");
-      } else {
-        alert(err.message);
-      }
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || "Please save your SOP first.");
     }
-  };
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `SOP_${new Date().toLocaleDateString()}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    
+    // Memory cleanup
+    window.URL.revokeObjectURL(url);
+    a.remove();
+  } catch (err: any) {
+    // Better error message for production
+    alert(err.message === "Failed to fetch" 
+      ? "Live server is waking up (Render Free Tier). Please wait 30 seconds and try again." 
+      : err.message);
+  }
+};
 
   return (
     <div className="min-h-screen bg-brand-bg text-slate-900 p-10 animate-fade-in">
